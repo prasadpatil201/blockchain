@@ -1,0 +1,28 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def gradient_descent(x_start, learning_rate, iterations):
+    x = x_start
+    x_history = [x]
+    for _ in range(iterations):
+        grad = 2 * (x + 3)
+        x = x - learning_rate * grad
+        x_history.append(x)
+    return x, x_history
+
+x_min, x_history = gradient_descent(2, 0.1, 100)
+y_min = (x_min + 3)**2
+print("Local minima at x =", x_min, "y =", y_min)
+
+x_vals = np.linspace(-10, 10, 400)
+y_vals = (x_vals + 3)**2
+plt.plot(x_vals, y_vals, label='y=(x+3)^2')
+plt.scatter(x_history, [(x + 3)**2 for x in x_history], color='red', label='Gradient Descent Steps')
+plt.scatter(x_min, y_min, color='green', marker='x', s=100, label='Minima')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Gradient Descent for y=(x+3)^2')
+plt.legend()
+plt.grid(True)
+plt.savefig('gradient_descent_plot.png')
+plt.show()

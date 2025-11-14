@@ -1,54 +1,52 @@
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score, mean_squared_error
-import math
+import pandas as pd                                  # For data handling
+import numpy as np                                   # For numerical operations
+from sklearn.model_selection import train_test_split # For splitting dataset
+from sklearn.linear_model import LinearRegression     # Linear Regression model
+from sklearn.ensemble import RandomForestRegressor    # Random Forest model
+from sklearn.metrics import r2_score, mean_squared_error  # Evaluation metrics
+import math                                           # For square root
 
-# Load dataset
-df = pd.read_csv("uber.csv")
+df = pd.read_csv("uber.csv")          # Load dataset
 
-# Data cleaning
-df = df.dropna()
-df = df[df['fare_amount'] > 0]
-df = df.sample(50000, random_state=42)
+df = df.dropna()                      # Remove missing values
+df = df[df['fare_amount'] > 0]        # Remove invalid fare values
+df = df.sample(50000, random_state=42)  # Sample for speed
 
-# Remove invalid coordinates
+# Filter out invalid coordinates
 df = df[(df['pickup_longitude'] > -180) & (df['pickup_longitude'] < 180)]
 df = df[(df['dropoff_longitude'] > -180) & (df['dropoff_longitude'] < 180)]
 df = df[(df['pickup_latitude'] > -90) & (df['pickup_latitude'] < 90)]
 df = df[(df['dropoff_latitude'] > -90) & (df['dropoff_latitude'] < 90)]
 
-# Distance feature
+# Calculate distance feature
 df['dist'] = (
     (df['dropoff_longitude'] - df['pickup_longitude'])**2 +
     (df['dropoff_latitude'] - df['pickup_latitude'])**2
 )**0.5
 
-# Filter unrealistic distances
+# Remove extreme outliers
 df = df[(df['dist'] > 0) & (df['dist'] < df['dist'].quantile(0.99))]
 
-# Correlation matrix
-num_df = df.select_dtypes(include=[np.number])
-print("Correlation matrix:")
-print(num_df.corr())
+num_df = df.select_dtypes(include=[np.number])   # Numeric columns
 
-# Feature selection
+print("Correlation matrix:")
+print(num_df.corr())                             # Show correlation
+
+# Select features and target
 X = df[['pickup_longitude', 'pickup_latitude',
         'dropoff_longitude', 'dropoff_latitude',
         'passenger_count', 'dist']]
 y = df['fare_amount']
 
-# Train-test split
+# Split dataset
 xtr, xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=0)
 
-# Linear Regression
+# Linear Regression model
 lm = LinearRegression()
 lm.fit(xtr, ytr)
 pred1 = lm.predict(xte)
 
-# Random Forest
+# Random Forest model
 rf = RandomForestRegressor(n_estimators=50, random_state=0, n_jobs=-1)
 rf.fit(xtr, ytr)
 pred2 = rf.predict(xte)

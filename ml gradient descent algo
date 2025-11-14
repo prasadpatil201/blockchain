@@ -1,28 +1,35 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt   # For plotting
+import numpy as np                # Numerical computations
 
-def gradient_descent(x_start, learning_rate, iterations):
-    x = x_start
-    x_history = [x]
-    for _ in range(iterations):
-        grad = 2 * (x + 3)
-        x = x - learning_rate * grad
-        x_history.append(x)
-    return x, x_history
+def f(x):
+    return (x + 3)**2             # Function f(x) = (x+3)^2
 
-x_min, x_history = gradient_descent(2, 0.1, 100)
-y_min = (x_min + 3)**2
-print("Local minima at x =", x_min, "y =", y_min)
+def grad(x):
+    return 2 * (x + 3)            # Derivative of f(x)
 
-x_vals = np.linspace(-10, 10, 400)
-y_vals = (x_vals + 3)**2
-plt.plot(x_vals, y_vals, label='y=(x+3)^2')
-plt.scatter(x_history, [(x + 3)**2 for x in x_history], color='red', label='Gradient Descent Steps')
-plt.scatter(x_min, y_min, color='green', marker='x', s=100, label='Minima')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('Gradient Descent for y=(x+3)^2')
+def gradient_descent(start=3, lr=0.1, steps=50):
+    x = start                     # Initial starting point
+    xs = [x]                      # Store path of x values
+
+    for i in range(steps):        # Run for given number of steps
+        grad_val = grad(x)        # Compute gradient
+        x = x - lr * grad_val     # Update step
+        xs.append(x)              # Save new x
+
+    return x, f(x), xs            # Return final x, f(x), and path
+
+min_x, min_y, path = gradient_descent()   # Run gradient descent
+
+print("Min x:", min_x)           # Print minimum x
+print("Min y:", min_y)           # Print minimum y
+
+x_vals = np.linspace(-8, 4, 100)   # X-axis range
+y_vals = f(x_vals)                 # Corresponding y values
+
+plt.plot(x_vals, y_vals, label='f(x)=(x+3)^2')                      # Draw curve
+plt.scatter(path, [f(i) for i in path], color='red', label='Steps') # Plot descent steps
+plt.title("Gradient Descent (Kinda Works)")                         # Title
+plt.xlabel("x")
+plt.ylabel("f(x)")
 plt.legend()
-plt.grid(True)
-plt.savefig('gradient_descent_plot.png')
 plt.show()

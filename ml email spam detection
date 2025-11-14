@@ -1,34 +1,30 @@
-import kagglehub
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import pandas as pd                          # For data handling
+from sklearn.model_selection import train_test_split   # To split dataset
+from sklearn.neighbors import KNeighborsClassifier      # KNN model
+from sklearn.svm import SVC                             # SVM model
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report  # Evaluation metrics
 
-path = kagglehub.dataset_download("balaka18/email-spam-classification-dataset-csv")
-df = pd.read_csv(path + '/emails.csv')
-X = df.drop(['Email No.', 'Prediction'], axis=1)
-y = df['Prediction']
+df = pd.read_csv("emails.csv")               # Load dataset
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X = df.drop(columns=['Email No.', 'Prediction'])   # Features (removing unnecessary columns)
+y = df['Prediction']                               # Target label (spam/ham)
 
-knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-y_pred_knn = knn.predict(X_test)
+xtr, xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=0)  # Split dataset
 
-print("KNN:")
-print("Accuracy:", accuracy_score(y_test, y_pred_knn))
-print("Precision:", precision_score(y_test, y_pred_knn))
-print("Recall:", recall_score(y_test, y_pred_knn))
-print("F1:", f1_score(y_test, y_pred_knn))
+knn = KNeighborsClassifier(n_neighbors=5)    # Create KNN model
+knn.fit(xtr, ytr)                            # Train KNN
+pred_knn = knn.predict(xte)                  # Predict using KNN
 
-svm = SVC()
-svm.fit(X_train, y_train)
-y_pred_svm = svm.predict(X_test)
+svm = SVC()                                  # Create SVM model
+svm.fit(xtr, ytr)                            # Train SVM
+pred_svm = svm.predict(xte)                  # Predict using SVM
 
-print("SVM:")
-print("Accuracy:", accuracy_score(y_test, y_pred_svm))
-print("Precision:", precision_score(y_test, y_pred_svm))
-print("Recall:", recall_score(y_test, y_pred_svm))
-print("F1:", f1_score(y_test, y_pred_svm))
+print("=== KNN Results ===")                 
+print("Accuracy:", accuracy_score(yte, pred_knn))                  # Accuracy of KNN
+print("Confusion Matrix:\n", confusion_matrix(yte, pred_knn))      # Confusion matrix
+print(classification_report(yte, pred_knn))                        # Precision, Recall, F1
+
+print("=== SVM Results ===")
+print("Accuracy:", accuracy_score(yte, pred_svm))                  # Accuracy of SVM
+print("Confusion Matrix:\n", confusion_matrix(yte, pred_svm))      # Confusion matrix
+print(classification_report(yte, pred_svm))                        # Precision, Recall, F1

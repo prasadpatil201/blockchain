@@ -1,32 +1,39 @@
-import pandas as pd
-import requests
-from io import StringIO
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+import pandas as pd                                   # Data handling
+import numpy as np                                    # Numerical operations
+from sklearn.model_selection import train_test_split  # Splitting data
+from sklearn.neighbors import KNeighborsClassifier     # KNN Model
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score  # Metrics
 
-url = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
-response = requests.get(url)
-data = StringIO(response.text)
-df = pd.read_csv(data, header=None)
-df.columns = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome']
+data = pd.read_csv('diabetes.csv')   # Load dataset
 
-X = df.drop('Outcome', axis=1)
-y = df['Outcome']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Columns where zeros represent missing values
+cols = ['Glucose','BloodPressure','SkinThickness','Insulin','BMI']
 
-knn = KNeighborsClassifier(n_neighbors=5)
-knn.fit(X_train, y_train)
-y_pred = knn.predict(X_test)
+for c in cols:
+    data[c] = data[c].replace(0, np.nan)        # Replace 0 with NaN
+    data[c] = data[c].fillna(data[c].mean())    # Fill NaN with mean
 
-cm = confusion_matrix(y_test, y_pred)
-accuracy = accuracy_score(y_test, y_pred)
-error_rate = 1 - accuracy
-precision = precision_score(y_test, y_pred)
-recall = recall_score(y_test, y_pred)
+X = data.iloc[:, :-1]         # All columns except last → features
+y = data['Outcome']           # Target column
 
-print(cm)
-print(accuracy)
-print(error_rate)
-print(precision)
-print(recall)
+x_train, x_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=1)         # Train-test split
+
+knn = KNeighborsClassifier(n_neighbors=5)    # Create KNN model
+knn.fit(x_train, y_train)                    # Train model
+
+pred = knn.predict(x_test)                  # Predict test samples
+
+cm = confusion_matrix(y_test, pred)         # Confusion matrix
+acc = accuracy_score(y_test, pred)          # Accuracy
+error = 1 - acc                             # Error rate
+prec = precision_score(y_test, pred)        # Precision
+rec = recall_score(y_test, pred)            # Recall
+f1 = f1_score(y_test, pred)                 # F1 score
+
+print("Confusion Matrix:\n", cm)
+print("Accuracy:", acc)
+print("Error Rate:", error)
+print("Precision:", prec)
+print("Recall:", rec)
+print("F1 Score:", f1)
